@@ -10,34 +10,32 @@ module.exports = async (req, res) => {
     if (req.method === 'POST') {
         const update = req.body;
 
-        // Handle /start or /game command
-        if (update.message && (update.message.text === '/start' || update.message.text === '/game')) {
-            try {
+        try {
+            // Handle /start or /game command
+            if (update.message && (update.message.text === '/start' || update.message.text === '/game')) {
                 await bot.sendGame(update.message.from.id, gameName);
-                res.status(200).send('OK');
-            } catch (error) {
-                console.error("Error sending game:", error);
-                res.status(500).send('Error sending game');
             }
-        }
 
-        // Handle callback query for the Play button
-        if (update.callback_query) {
-            // Log the callback query to inspect the received data
-            console.log('Received callback query:', update.callback_query);
-
-            if (update.callback_query.game_short_name !== gameName) {
-                await bot.answerCallbackQuery(update.callback_query.id, `Sorry, '${update.callback_query.game_short_name}' is not available.`);
-            } else {
-                await bot.answerCallbackQuery({
-                    callback_query_id: update.callback_query.id,
-                    url: gameUrl, // Send the game URL when Play button is clicked
-                });
+            // Handle callback query for the Play button
+            if (update.callback_query) {
+                if (update.callback_query.game_short_name.toLowerCase() !== gameName.toLowerCase()) {
+                    await bot.answerCallbackQuery(update.callback_query.id, `Sorry, '${update.callback_query.game_short_name}' is not available.`);
+                } else {
+                    await bot.answerCallbackQuery({
+                        callback_query_id: update.callback_query.id,
+                        url: gameUrl,
+                    });
+                }
             }
-        }
 
-        res.status(200).send('OK');
+            // Ensure response is sent only once
+            res.status(200).send('OK');
+        } catch (error) {
+            console.error('Error in processing update:', error);
+            res.status(500).send('Internal Server Error');
+        }
     } else {
         res.status(405).send('Method Not Allowed');
     }
 };
+
