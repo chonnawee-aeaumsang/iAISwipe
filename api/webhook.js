@@ -23,6 +23,9 @@ module.exports = async (req, res) => {
 
         // Handle callback query for the Play button
         if (update.callback_query) {
+            // Log the callback query to inspect the received data
+            console.log('Received callback query:', update.callback_query);
+
             if (update.callback_query.game_short_name !== gameName) {
                 await bot.answerCallbackQuery(update.callback_query.id, `Sorry, '${update.callback_query.game_short_name}' is not available.`);
             } else {
